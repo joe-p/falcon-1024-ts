@@ -59,6 +59,37 @@ class FalconError extends Error {
   }
 }
 
+type WasmPtr = {
+  ptr?: number;
+  name: string;
+  size: number;
+};
+
+/** Given the list of WasmPtr, allocates memory for each, runs the function, and frees the memory. This should be the ONLY function that _malloc and _free are called */
+function withWasmAllocations<T>(variables: WasmPtr[], fn: () => T): T {
+  try {
+    for (const v of variables.filter((v) => v.size > 0)) {
+      try {
+        v.ptr = module._malloc(v.size);
+      } catch (e) {
+        throw new FalconError(`Failed to allocate memory for ${v.name}`);
+      }
+    }
+
+    return fn();
+  } finally {
+    for (const v of variables) {
+      if (v.ptr !== undefined && v.ptr !== 0) {
+        try {
+          module._free(v.ptr);
+        } catch (e) {
+          console.error(`Failed to free memory for ${v.name} (${v.ptr}):`, e);
+        }
+      }
+    }
+  }
+}
+
 export class KeygenError extends FalconError {
   constructor(context: number | string) {
     super(context);
@@ -95,45 +126,48 @@ export function generateKey(seed?: Uint8Array): {
   }
   const seedLen = seed.length;
 
-  const rngPtr = module._malloc(SHAKE256_CONTEXT_SIZE);
+  const rng: WasmPtr = { name: "rng", size: SHAKE256_CONTEXT_SIZE };
+  const seedAlloc: WasmPtr = { name: "seed", size: seedLen };
+  const privateKeyAlloc: WasmPtr = {
+    name: "privateKey",
+    size: FALCON_DET1024_PRIVKEY_SIZE,
+  };
+  const publicKeyAlloc: WasmPtr = {
+    name: "publicKey",
+    size: FALCON_DET1024_PUBKEY_SIZE,
+  };
 
-  let seedPtr = 0;
-  seedPtr = module._malloc(seedLen);
-  module.HEAPU8.set(seed!, seedPtr);
+  return withWasmAllocations(
+    [rng, seedAlloc, privateKeyAlloc, publicKeyAlloc],
+    () => {
+      module.HEAPU8.set(seed!, seedAlloc.ptr!);
+      module._shake256_init_prng_from_seed(rng.ptr!, seedAlloc.ptr!, seedLen);
 
-  module._shake256_init_prng_from_seed(rngPtr, seedPtr, seedLen);
+      const result = module._falcon_det1024_keygen(
+        rng.ptr!,
+        privateKeyAlloc.ptr!,
+        publicKeyAlloc.ptr!,
+      );
 
-  const privateKeyPtr = module._malloc(FALCON_DET1024_PRIVKEY_SIZE);
-  const publicKeyPtr = module._malloc(FALCON_DET1024_PUBKEY_SIZE);
+      const publicKey = new Uint8Array(
+        module.HEAPU8.buffer,
+        publicKeyAlloc.ptr!,
+        FALCON_DET1024_PUBKEY_SIZE,
+      ).slice();
 
-  const result = module._falcon_det1024_keygen(
-    rngPtr,
-    privateKeyPtr,
-    publicKeyPtr,
+      const privateKey = new Uint8Array(
+        module.HEAPU8.buffer,
+        privateKeyAlloc.ptr!,
+        FALCON_DET1024_PRIVKEY_SIZE,
+      ).slice();
+
+      if (result !== 0) {
+        throw new KeygenError(result);
+      }
+
+      return { publicKey, privateKey };
+    },
   );
-
-  const publicKey = new Uint8Array(
-    module.HEAPU8.buffer,
-    publicKeyPtr,
-    FALCON_DET1024_PUBKEY_SIZE,
-  ).slice();
-
-  const privateKey = new Uint8Array(
-    module.HEAPU8.buffer,
-    privateKeyPtr,
-    FALCON_DET1024_PRIVKEY_SIZE,
-  ).slice();
-
-  module._free(rngPtr);
-  module._free(seedPtr);
-  module._free(privateKeyPtr);
-  module._free(publicKeyPtr);
-
-  if (result !== 0) {
-    throw new KeygenError(result);
-  }
-
-  return { publicKey, privateKey };
 }
 
 /**
@@ -154,44 +188,49 @@ export function signCompressed(
 
   const msgLen = message.length;
 
-  const sigPtr = module._malloc(FALCON_DET1024_SIG_COMPRESSED_MAXSIZE);
-  const sigLenPtr = module._malloc(4); // size_t pointer
+  const sigAlloc: WasmPtr = {
+    name: "sig",
+    size: FALCON_DET1024_SIG_COMPRESSED_MAXSIZE,
+  };
+  const sigLenAlloc: WasmPtr = { name: "sigLen", size: 4 }; // size_t pointer
+  const privateKeyAlloc: WasmPtr = {
+    name: "privateKey",
+    size: FALCON_DET1024_PRIVKEY_SIZE,
+  };
+  const msgAlloc: WasmPtr = { name: "msg", size: msgLen };
 
-  const privateKeyPtr = module._malloc(FALCON_DET1024_PRIVKEY_SIZE);
-  module.HEAPU8.set(privateKey, privateKeyPtr);
+  const allocations = [sigAlloc, sigLenAlloc, privateKeyAlloc, msgAlloc];
 
-  let msgPtr = 0;
-  if (msgLen > 0) {
-    msgPtr = module._malloc(msgLen);
-    module.HEAPU8.set(message, msgPtr);
-  }
+  return withWasmAllocations(allocations, () => {
+    module.HEAPU8.set(privateKey, privateKeyAlloc.ptr!);
 
-  const result = module._falcon_det1024_sign_compressed(
-    sigPtr,
-    sigLenPtr,
-    privateKeyPtr,
-    msgPtr,
-    msgLen,
-  );
+    const msgPtr = msgAlloc.ptr!;
+    if (msgLen > 0) {
+      module.HEAPU8.set(message, msgPtr);
+    }
 
-  const sigLen = module.HEAPU32[sigLenPtr >> 2];
+    const result = module._falcon_det1024_sign_compressed(
+      sigAlloc.ptr!,
+      sigLenAlloc.ptr!,
+      privateKeyAlloc.ptr!,
+      msgPtr,
+      msgLen,
+    );
 
-  const signature = new Uint8Array(
-    module.HEAPU8.buffer,
-    sigPtr,
-    sigLen,
-  ).slice();
+    const sigLen = module.HEAPU32[sigLenAlloc.ptr! >> 2];
 
-  module._free(sigPtr);
-  module._free(sigLenPtr);
-  module._free(privateKeyPtr);
-  if (msgPtr) module._free(msgPtr);
+    const signature = new Uint8Array(
+      module.HEAPU8.buffer,
+      sigAlloc.ptr!,
+      sigLen,
+    ).slice();
 
-  if (result !== 0) {
-    throw new SigningError(result);
-  }
+    if (result !== 0) {
+      throw new SigningError(result);
+    }
 
-  return signature;
+    return signature;
+  });
 }
 
 /**
@@ -225,34 +264,36 @@ export function verifyCompressed(
 
   const msgLen = message.length;
 
-  const sigPtr = module._malloc(signature.length);
-  module.HEAPU8.set(signature, sigPtr);
+  const sigAlloc: WasmPtr = { name: "sig", size: signature.length };
+  const publicKeyAlloc: WasmPtr = {
+    name: "publicKey",
+    size: FALCON_DET1024_PUBKEY_SIZE,
+  };
+  const msgAlloc: WasmPtr = { name: "msg", size: msgLen };
 
-  const publicKeyPtr = module._malloc(FALCON_DET1024_PUBKEY_SIZE);
-  module.HEAPU8.set(publicKey, publicKeyPtr);
+  const allocations = [sigAlloc, publicKeyAlloc, msgAlloc];
 
-  let msgPtr = 0;
-  if (msgLen > 0) {
-    msgPtr = module._malloc(msgLen);
-    module.HEAPU8.set(message, msgPtr);
-  }
+  return withWasmAllocations(allocations, () => {
+    module.HEAPU8.set(signature, sigAlloc.ptr!);
+    module.HEAPU8.set(publicKey, publicKeyAlloc.ptr!);
 
-  const result = module._falcon_det1024_verify_compressed(
-    sigPtr,
-    signature.length,
-    publicKeyPtr,
-    msgPtr,
-    msgLen,
-  );
+    const msgPtr = msgAlloc.ptr!;
+    if (msgLen > 0) {
+      module.HEAPU8.set(message, msgPtr);
+    }
 
-  module._free(sigPtr);
-  module._free(publicKeyPtr);
-  if (msgPtr) module._free(msgPtr);
+    const result = module._falcon_det1024_verify_compressed(
+      sigAlloc.ptr!,
+      signature.length,
+      publicKeyAlloc.ptr!,
+      msgPtr,
+      msgLen,
+    );
 
-  if (result !== 0) {
-    throw new VerificationError(result);
-  }
+    if (result !== 0) {
+      throw new VerificationError(result);
+    }
 
-  return true;
+    return true;
+  });
 }
-
