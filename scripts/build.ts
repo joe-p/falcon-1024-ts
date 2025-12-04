@@ -30,6 +30,7 @@ const args = [
   ["-s", "STACK_SIZE=262144"],
   ["-s", "MODULARIZE=1"],
   ["-s", "EXPORT_ES6=1"],
+  ["-s", "ENVIRONMENT=web,worker"],
   ["-o", "../src/falcon_wasm.js"],
 ].flat();
 

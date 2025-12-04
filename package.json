@@ -1,8 +1,27 @@
 {
   "name": "falcon-1024",
-  "module": "src/index.ts",
+  "version": "0.1.0",
   "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target browser && cp src/falcon_wasm.wasm dist/ && tsc -p tsconfig.build.json",
+    "test": "bun test __test__",
+    "test:browser": "bun run build && bunx playwright test",
+    "prepublishOnly": "bun run build"
+  },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@types/bun": "latest"
   },
   "peerDependencies": {
