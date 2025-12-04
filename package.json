@@ -1,6 +1,6 @@
 {
   "name": "falcon-1024",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -12,7 +12,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target browser && cp src/falcon_wasm.wasm dist/ && tsc -p tsconfig.build.json",
@@ -26,5 +27,13 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joe-p/falcon-1024-ts.git"
+  },
+  "homepage": "https://github.com/joe-p/falcon-1024-ts#readme",
+  "bugs": {
+    "url": "https://github.com/joe-p/falcon-1024-ts/issues"
   }
 }
