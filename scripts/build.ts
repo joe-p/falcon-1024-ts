@@ -31,6 +31,8 @@ const args = [
   ["-s", "MODULARIZE=1"],
   ["-s", "EXPORT_ES6=1"],
   ["-s", "ENVIRONMENT=web,worker"],
+  ["-s", "WASM_ASYNC_COMPILATION=1"],
+  ["-s", "DYNAMIC_EXECUTION=0"],
   ["-o", "../src/falcon_wasm.js"],
 ].flat();
 
