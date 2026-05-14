@@ -39,7 +39,7 @@ const dockerArgs = [
   "-v", `.:/src`,
   "-u", `${process.getuid?.() || 1000}:${process.getgid?.() || 1000}`,
   "-w", "/src",
-  "emscripten/emsdk",
+  "emscripten/emsdk:5.0.7",
   "emcc",
   ...emccArgs,
 ];
