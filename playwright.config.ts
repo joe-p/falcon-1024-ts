@@ -17,7 +17,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "bunx serve . -p 3123",
+    command: "pnpm exec serve . -p 3123",
     port: 3123,
     reuseExistingServer: !process.env.CI,
   },

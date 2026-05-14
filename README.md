@@ -120,22 +120,22 @@ When bundling, ensure that `falcon_wasm.wasm` (shipped in the published `dist/` 
 
 ## Development
 
-This repository uses [Bun](https://bun.com) for development.
+This repository uses pnpm for development.
 
 Install dependencies:
 
 ```bash
-bun install
+pnpm install
 ```
 
 Build the library (ESM + `.d.ts` + wasm copy):
 
 ```bash
-bun run build
+pnpm run build
 ```
 
 Run browser tests (Playwright):
 
 ```bash
-bun run test:browser
+pnpm run test:browser
 ```

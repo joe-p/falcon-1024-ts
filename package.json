@@ -17,15 +17,18 @@
     "README.md"
   ],
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --outdir=dist --target=es2022 --format=esm && cp src/falcon_wasm.wasm dist/ && tsc -p tsconfig.build.json",
+    "build": "pnpm exec tsx scripts/build.ts && esbuild src/index.ts --bundle --outdir=dist --target=es2022 --format=esm && cp src/falcon_wasm.wasm dist/ && tsc -p tsconfig.build.json",
     "test": "vitest run tests",
     "test:browser": "pnpm run build && pnpm exec playwright test",
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@types/node": "^25.8.0",
     "esbuild": "^0.25.0",
     "playwright": "^1.60.0",
+    "serve": "^14.2.6",
+    "tsx": "^4.22.0",
     "typescript": "^5",
     "vitest": "^2.0.0"
   },
