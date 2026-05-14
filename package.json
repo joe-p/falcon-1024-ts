@@ -17,13 +17,14 @@
   ],
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target browser && cp src/falcon_wasm.wasm dist/ && tsc -p tsconfig.build.json",
-    "test": "bun test __test__",
+    "test": "bun test tests",
     "test:browser": "bun run build && bunx playwright test",
     "prepublishOnly": "bun run build"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0",
-    "@types/bun": "latest"
+    "@playwright/test": "^1.60.0",
+    "@types/bun": "latest",
+    "playwright": "^1.60.0"
   },
   "peerDependencies": {
     "typescript": "^5"
