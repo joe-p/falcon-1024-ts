@@ -22,7 +22,7 @@
     "prepublishOnly": "bun run build"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.60.0",
     "@types/bun": "latest",
     "playwright": "^1.60.0"
   },
