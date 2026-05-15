@@ -120,22 +120,29 @@ When bundling, ensure that `falcon_wasm.wasm` (shipped in the published `dist/` 
 
 ## Development
 
-This repository uses [Bun](https://bun.com) for development.
+This repository uses pnpm for development.
+
+### Prerequisites
+
+- **Node.js >= 18** (with pnpm support)
+- **Docker** – required for building the WebAssembly module. The build process uses the `emscripten/emsdk:5.0.7` Docker image to compile C code to WASM. On first build, Docker will automatically pull this image (~1GB download).
+
+### Building
 
 Install dependencies:
 
 ```bash
-bun install
+pnpm install
 ```
 
 Build the library (ESM + `.d.ts` + wasm copy):
 
 ```bash
-bun run build
+pnpm run build
 ```
 
 Run browser tests (Playwright):
 
 ```bash
-bun run test:browser
+pnpm run test:browser
 ```

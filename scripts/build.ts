@@ -1,13 +1,26 @@
-import { $, Glob } from "bun";
-import path from "path";
+import { spawnSync } from "child_process";
+import { readdirSync, renameSync } from "fs";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
 
-const glob = new Glob("*.c");
-const falcon_dir = path.join(__dirname, "..", "falcon");
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+try {
+  process.chdir(resolve(scriptDir, "../falcon"));
+} catch (error) {
+  throw new Error(
+    "Failed to enter the falcon directory. Make sure the falcon submodule is initialized: git submodule update --init"
+  );
+}
+
 const srcFiles = [];
 
-for (const file of glob.scanSync(falcon_dir)) {
-  srcFiles.push(file);
+for (const file of readdirSync(".")) {
+  if (file.endsWith(".c")) {
+    srcFiles.push(file);
+  }
 }
+
+srcFiles.sort();
 
 const exportedFunctions = [
   "falcon_det1024_sign_compressed",
@@ -17,23 +30,49 @@ const exportedFunctions = [
   "malloc",
   "free",
 ]
-  .map((f) => `"_${f}"`)
-  .join(", ");
+  .map((f) => `_${f}`)
+  .join(",");
 
-process.chdir(falcon_dir);
-
-const args = [
+const emccArgs = [
   "-O3",
-  ["-s", "WASM=1"],
-  ["-s", `EXPORTED_FUNCTIONS=[${exportedFunctions}]`],
-  ["-s", `EXPORTED_RUNTIME_METHODS=["HEAPU8", "HEAPU32"]`],
-  ["-s", "STACK_SIZE=262144"],
-  ["-s", "MODULARIZE=1"],
-  ["-s", "EXPORT_ES6=1"],
-  ["-s", "ENVIRONMENT=web,worker"],
-  ["-s", "WASM_ASYNC_COMPILATION=1"],
-  ["-s", "DYNAMIC_EXECUTION=0"],
-  ["-o", "../src/falcon_wasm.js"],
-].flat();
+  "-s", "WASM=1",
+  "-s", `EXPORTED_FUNCTIONS=[${exportedFunctions}]`,
+  "-s", "EXPORTED_RUNTIME_METHODS=[HEAPU8,HEAPU32]",
+  "-s", "STACK_SIZE=262144",
+  "-s", "MODULARIZE=1",
+  "-s", "EXPORT_ES6=1",
+  "-s", "ENVIRONMENT=web,worker",
+  "-s", "WASM_ASYNC_COMPILATION=1",
+  "-s", "DYNAMIC_EXECUTION=0",
+  "-o", "falcon_wasm.js",
+  ...srcFiles,
+];
 
-await $`emcc ${srcFiles} ${args}`;
+const dockerArgs = [
+  "run", "--rm",
+  "-v", `.:/src`,
+  "-u", `${process.getuid?.() || 1000}:${process.getgid?.() || 1000}`,
+  "-w", "/src",
+  "emscripten/emsdk:5.0.7",
+  "emcc",
+  ...emccArgs,
+];
+
+console.log(`Running docker ${dockerArgs.join(" ")}`);
+const result = spawnSync("docker", dockerArgs, { stdio: 'inherit' });
+
+if (result.error) {
+  throw new Error(`Failed to run Docker: ${result.error.message}. Make sure Docker is installed and running.`);
+}
+
+if (result.status !== 0) {
+  throw new Error(`Docker command failed with exit code ${result.status}. Check that the emscripten/emsdk:5.0.7 image is available and emcc compilation succeeded.`);
+}
+
+try {
+  renameSync("falcon_wasm.js", "../src/falcon_wasm.js");
+  renameSync("falcon_wasm.wasm", "../src/falcon_wasm.wasm");
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  throw new Error(`Failed to move output files: ${message}. The Docker command may have succeeded but did not generate the expected falcon_wasm.js and falcon_wasm.wasm files.`);
+}
