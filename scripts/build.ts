@@ -60,5 +60,9 @@ if (result.status !== 0) {
   throw new Error(`Docker command failed with exit code ${result.status}. Check that the emscripten/emsdk:5.0.7 image is available and emcc compilation succeeded.`);
 }
 
-renameSync("falcon_wasm.js", "../src/falcon_wasm.js")
-renameSync("falcon_wasm.wasm", "../src/falcon_wasm.wasm")
+try {
+  renameSync("falcon_wasm.js", "../src/falcon_wasm.js");
+  renameSync("falcon_wasm.wasm", "../src/falcon_wasm.wasm");
+} catch (error) {
+  throw new Error(`Failed to move output files: ${error.message}. The Docker command may have succeeded but did not generate the expected falcon_wasm.js and falcon_wasm.wasm files.`);
+}
