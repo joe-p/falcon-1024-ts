@@ -1,5 +1,5 @@
 import { spawnSync } from "child_process";
-import { globSync, renameSync } from "fs";
+import { readdirSync, renameSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
@@ -7,8 +7,10 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 process.chdir(resolve(scriptDir, "../falcon"));
 const srcFiles = [];
 
-for (const file of globSync("*.c")) {
-  srcFiles.push(file);
+for (const file of readdirSync(".")) {
+  if (file.endsWith(".c")) {
+    srcFiles.push(file);
+  }
 }
 
 const exportedFunctions = [
@@ -48,6 +50,15 @@ const dockerArgs = [
 ];
 
 console.log(`Running docker ${dockerArgs.join(" ")}`);
-spawnSync("docker", dockerArgs, { stdio: 'inherit' });
+const result = spawnSync("docker", dockerArgs, { stdio: 'inherit' });
+
+if (result.error) {
+  throw new Error(`Failed to run Docker: ${result.error.message}. Make sure Docker is installed and running.`);
+}
+
+if (result.status !== 0) {
+  throw new Error(`Docker command failed with exit code ${result.status}. Check that the emscripten/emsdk:5.0.7 image is available and emcc compilation succeeded.`);
+}
+
 renameSync("falcon_wasm.js", "../src/falcon_wasm.js")
 renameSync("falcon_wasm.wasm", "../src/falcon_wasm.wasm")
