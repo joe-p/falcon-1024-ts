@@ -1,7 +1,10 @@
 import { spawnSync } from "child_process";
 import { globSync, renameSync } from "fs";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
 
-process.chdir("falcon")
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+process.chdir(resolve(scriptDir, "../falcon"));
 const srcFiles = [];
 
 for (const file of globSync("*.c")) {
@@ -48,4 +51,3 @@ console.log(`Running docker ${dockerArgs.join(" ")}`);
 spawnSync("docker", dockerArgs, { stdio: 'inherit' });
 renameSync("falcon_wasm.js", "../src/falcon_wasm.js")
 renameSync("falcon_wasm.wasm", "../src/falcon_wasm.wasm")
-
