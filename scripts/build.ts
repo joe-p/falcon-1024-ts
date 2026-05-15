@@ -4,7 +4,14 @@ import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
-process.chdir(resolve(scriptDir, "../falcon"));
+try {
+  process.chdir(resolve(scriptDir, "../falcon"));
+} catch (error) {
+  throw new Error(
+    "Failed to enter the falcon directory. Make sure the falcon submodule is initialized: git submodule update --init"
+  );
+}
+
 const srcFiles = [];
 
 for (const file of readdirSync(".")) {
@@ -12,6 +19,8 @@ for (const file of readdirSync(".")) {
     srcFiles.push(file);
   }
 }
+
+srcFiles.sort();
 
 const exportedFunctions = [
   "falcon_det1024_sign_compressed",

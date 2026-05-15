@@ -124,7 +124,7 @@ This repository uses pnpm for development.
 
 ### Prerequisites
 
-- **Node.js** (with pnpm support)
+- **Node.js >= 18** (with pnpm support)
 - **Docker** – required for building the WebAssembly module. The build process uses the `emscripten/emsdk:5.0.7` Docker image to compile C code to WASM. On first build, Docker will automatically pull this image (~1GB download).
 
 ### Building

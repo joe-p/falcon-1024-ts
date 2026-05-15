@@ -22,6 +22,9 @@
     "test:browser": "pnpm run build && pnpm exec playwright test",
     "prepublishOnly": "pnpm run build"
   },
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.8.0",
