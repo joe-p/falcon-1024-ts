@@ -64,5 +64,6 @@ try {
   renameSync("falcon_wasm.js", "../src/falcon_wasm.js");
   renameSync("falcon_wasm.wasm", "../src/falcon_wasm.wasm");
 } catch (error) {
-  throw new Error(`Failed to move output files: ${error.message}. The Docker command may have succeeded but did not generate the expected falcon_wasm.js and falcon_wasm.wasm files.`);
+  const message = error instanceof Error ? error.message : String(error);
+  throw new Error(`Failed to move output files: ${message}. The Docker command may have succeeded but did not generate the expected falcon_wasm.js and falcon_wasm.wasm files.`);
 }
