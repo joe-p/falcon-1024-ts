@@ -3,7 +3,29 @@ import { readdirSync, renameSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
+function run(cmd: string, args: string[]) {
+  console.debug(`+${cmd} ${args.join(" ")}`);
+  const result = spawnSync(cmd, args, { stdio: 'inherit' });
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (result.status !== 0) {
+    throw new Error(`${cmd} exited with status code ${result.status}`);
+  }
+
+  return result;
+}
+
 const scriptDir = dirname(fileURLToPath(import.meta.url));
+
+const emsdkBin = resolve(scriptDir, "../emsdk/emsdk");
+const emsdkVersion = "5.0.7";
+
+run("git", ["submodule", "update", "--init", "--recursive"]);
+run(emsdkBin, ["install", emsdkVersion]);
+run(emsdkBin, ["activate", emsdkVersion]);
+
 try {
   process.chdir(resolve(scriptDir, "../falcon"));
 } catch (error) {
@@ -48,31 +70,13 @@ const emccArgs = [
   ...srcFiles,
 ];
 
-const dockerArgs = [
-  "run", "--rm",
-  "-v", `.:/src`,
-  "-u", `${process.getuid?.() || 1000}:${process.getgid?.() || 1000}`,
-  "-w", "/src",
-  "emscripten/emsdk:5.0.7",
-  "emcc",
-  ...emccArgs,
-];
-
-console.log(`Running docker ${dockerArgs.join(" ")}`);
-const result = spawnSync("docker", dockerArgs, { stdio: 'inherit' });
-
-if (result.error) {
-  throw new Error(`Failed to run Docker: ${result.error.message}. Make sure Docker is installed and running.`);
-}
-
-if (result.status !== 0) {
-  throw new Error(`Docker command failed with exit code ${result.status}. Check that the emscripten/emsdk:5.0.7 image is available and emcc compilation succeeded.`);
-}
+const emccBin = resolve(scriptDir, "../emsdk/upstream/emscripten/emcc");
+run(emccBin, emccArgs);
 
 try {
   renameSync("falcon_wasm.js", "../src/falcon_wasm.js");
   renameSync("falcon_wasm.wasm", "../src/falcon_wasm.wasm");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
-  throw new Error(`Failed to move output files: ${message}. The Docker command may have succeeded but did not generate the expected falcon_wasm.js and falcon_wasm.wasm files.`);
+  throw new Error(`Failed to move output files: ${message}. emcc may have succeeded but did not generate the expected falcon_wasm.js and falcon_wasm.wasm files.`);
 }
