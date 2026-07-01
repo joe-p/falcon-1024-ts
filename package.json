@@ -26,6 +26,9 @@
   "scripts": {
     "build": "pnpm exec tsx scripts/build.ts && esbuild src/index.ts --bundle --outfile=dist/index.js --target=es2022 --format=esm && esbuild src/index.cjs.ts --bundle --outfile=dist/index.cjs --target=es2022 --format=cjs --platform=node --define:import.meta.url=__filename && tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync('dist/index.d.ts','dist/index.d.cts')\"",
     "test": "vitest run --exclude '**/browser_tests/**' tests",
+    "test:esm": "node --test dist_tests/esm.mjs",
+    "test:cjs": "node --test dist_tests/cjs.cjs",
+    "test:dist": "pnpm run build && pnpm run test:esm && pnpm run test:cjs",
     "test:browser": "pnpm run build && pnpm exec playwright test",
     "prepublishOnly": "pnpm run build"
   },
