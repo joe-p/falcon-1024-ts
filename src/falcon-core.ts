@@ -290,7 +290,7 @@ export function makeApi(module: FalconModule): FalconApi {
    * @param signature - The compressed signature.
    * @param message - The original message.
    * @returns true if the signature is valid.
-   * @throws VerifyError if verification fails.
+   * @throws VerificationError if verification fails.
    */
   function verifyCompressed(
     publicKey: Uint8Array,
