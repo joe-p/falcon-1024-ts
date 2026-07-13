@@ -15,7 +15,7 @@ pnpm add falcon-1024
 bun add falcon-1024
 ```
 
-The package ships precompiled WebAssembly (`falcon_wasm.wasm`) and an ES module build targeting modern browsers / runtimes with WebAssembly support.
+The package ships precompiled WebAssembly **embedded directly in the JavaScript** (there is no separate `.wasm` file to serve), with both ES module and CommonJS builds. It works out of the box in modern browsers, Node.js (ESM **and** CommonJS), Bun, and bundlers — no `fetch` shim or asset wiring required.
 
 ## Quick Start
 
@@ -38,6 +38,12 @@ const signature = signCompressed(privateKey, message);
 // 3. Verify
 const isValid = verifyCompressed(publicKey, signature, message);
 console.log("Signature valid?", isValid); // true
+```
+
+The same API is available via CommonJS `require`:
+
+```js
+const { generateKey, signCompressed, verifyCompressed } = require("falcon-1024");
 ```
 
 ### Deterministic key generation from a seed
@@ -111,12 +117,14 @@ All error classes extend `Error` and wrap underlying Falcon error codes:
 
 ## Environment & Requirements
 
-- ESM-only package (`"type": "module"` in `package.json`).
+- Dual ESM + CommonJS package. Both `import { generateKey } from "falcon-1024"`
+  and `const { generateKey } = require("falcon-1024")` work with no extra setup.
+- The WebAssembly is embedded in the JavaScript, so there is no `.wasm` file to
+  copy or serve — bundlers and runtimes load it with no asset wiring or `fetch`
+  shim.
 - Requires:
   - WebAssembly support.
   - A `crypto.getRandomValues` implementation (browser Web Crypto, Bun, or Nodes `crypto.webcrypto` wired to `globalThis.crypto`).
-
-When bundling, ensure that `falcon_wasm.wasm` (shipped in the published `dist/` folder) is served alongside the compiled JS so the runtime can load it.
 
 ## Development
 
@@ -135,7 +143,7 @@ Install dependencies:
 pnpm install
 ```
 
-Build the library (ESM + `.d.ts` + wasm copy):
+Build the library (ESM + CommonJS bundles with embedded WASM, plus `.d.ts`):
 
 ```bash
 pnpm run build
