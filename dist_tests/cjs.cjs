@@ -4,13 +4,13 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
-  generateKey,
-  signCompressed,
-  verifyCompressed,
+  falcon1024,
   VerificationError,
   FALCON_DET1024_PUBKEY_SIZE,
   FALCON_DET1024_PRIVKEY_SIZE,
 } = require("../dist/index.cjs");
+
+const { generateKey, signCompressed, verifyCompressed } = falcon1024;
 
 const seed = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
 const message = new TextEncoder().encode("Hello, Falcon!");

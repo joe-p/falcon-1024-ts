@@ -6,11 +6,9 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const {
-          generateKey,
-          FALCON_DET1024_PUBKEY_SIZE,
-          FALCON_DET1024_PRIVKEY_SIZE,
-        } = await import("/dist/index.js");
+        const { falcon1024, FALCON_DET1024_PUBKEY_SIZE, FALCON_DET1024_PRIVKEY_SIZE } =
+          await import("/dist/index.js");
+        const { generateKey } = falcon1024;
 
         const seed = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
         const { publicKey, privateKey } = generateKey(seed);
@@ -31,11 +29,9 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const {
-          generateKey,
-          FALCON_DET1024_PUBKEY_SIZE,
-          FALCON_DET1024_PRIVKEY_SIZE,
-        } = await import("/dist/index.js");
+        const { falcon1024, FALCON_DET1024_PUBKEY_SIZE, FALCON_DET1024_PRIVKEY_SIZE } =
+          await import("/dist/index.js");
+        const { generateKey } = falcon1024;
 
         const { publicKey, privateKey } = generateKey();
 
@@ -55,7 +51,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey } = await import("/dist/index.js");
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey } = falcon1024;
 
         const seed = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
         const keys1 = generateKey(seed);
@@ -79,7 +76,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey } = await import("/dist/index.js");
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey } = falcon1024;
 
         const seed1 = new Uint8Array([1, 2, 3, 4]);
         const seed2 = new Uint8Array([5, 6, 7, 8]);
@@ -106,7 +104,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey, signCompressed } = await import("/dist/index.js");
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey, signCompressed } = falcon1024;
 
         const seed = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
         const { privateKey } = generateKey(seed);
@@ -127,7 +126,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey, signCompressed } = await import("/dist/index.js");
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey, signCompressed } = falcon1024;
 
         const { privateKey } = generateKey();
         const signature = signCompressed(privateKey, new Uint8Array(0));
@@ -144,7 +144,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey, signCompressed } = await import("/dist/index.js");
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey, signCompressed } = falcon1024;
 
         const seed = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
         const { privateKey } = generateKey(seed);
@@ -169,9 +170,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey, signCompressed, verifyCompressed } = await import(
-          "/dist/index.js"
-        );
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey, signCompressed, verifyCompressed } = falcon1024;
 
         const seed = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
         const { publicKey, privateKey } = generateKey(seed);
@@ -190,9 +190,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey, signCompressed, verifyCompressed } = await import(
-          "/dist/index.js"
-        );
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey, signCompressed, verifyCompressed } = falcon1024;
 
         const { publicKey, privateKey } = generateKey();
         const message = new Uint8Array(0);
@@ -210,9 +209,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey, signCompressed, verifyCompressed } = await import(
-          "/dist/index.js"
-        );
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey, signCompressed, verifyCompressed } = falcon1024;
 
         const seed = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
         const { publicKey, privateKey } = generateKey(seed);
@@ -236,9 +234,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey, signCompressed, verifyCompressed } = await import(
-          "/dist/index.js"
-        );
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey, signCompressed, verifyCompressed } = falcon1024;
 
         const { privateKey } = generateKey(new Uint8Array([1, 2, 3, 4]));
         const { publicKey: wrongPublicKey } = generateKey(
@@ -263,9 +260,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey, verifyCompressed } = await import(
-          "/dist/index.js"
-        );
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey, verifyCompressed } = falcon1024;
 
         const { publicKey } = generateKey();
         const message = new TextEncoder().encode("Hello, Falcon!");
@@ -286,9 +282,8 @@ test.describe("Falcon Browser Tests", () => {
       await page.goto("http://localhost:3123");
 
       const result = await page.evaluate(async () => {
-        const { generateKey, signCompressed, verifyCompressed } = await import(
-          "/dist/index.js"
-        );
+        const { falcon1024 } = await import("/dist/index.js");
+        const { generateKey, signCompressed, verifyCompressed } = falcon1024;
 
         const seed = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
         const { publicKey, privateKey } = generateKey(seed);

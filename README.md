@@ -20,30 +20,26 @@ The package ships precompiled WebAssembly **embedded directly in the JavaScript*
 ## Quick Start
 
 ```ts
-import {
-  generateKey,
-  signCompressed,
-  verifyCompressed,
-} from "falcon-1024";
+import { falcon1024 } from "falcon-1024";
 
 const encoder = new TextEncoder();
 const message = encoder.encode("hello, post-quantum world");
 
 // 1. Generate a deterministic Falcon-1024 keypair
-const { publicKey, privateKey } = generateKey(); // uses crypto.getRandomValues by default
+const { publicKey, privateKey } = falcon1024.generateKey(); // uses crypto.getRandomValues by default
 
 // 2. Sign (compressed format)
-const signature = signCompressed(privateKey, message);
+const signature = falcon1024.signCompressed(privateKey, message);
 
 // 3. Verify
-const isValid = verifyCompressed(publicKey, signature, message);
+const isValid = falcon1024.verifyCompressed(publicKey, signature, message);
 console.log("Signature valid?", isValid); // true
 ```
 
 The same API is available via CommonJS `require`:
 
 ```js
-const { generateKey, signCompressed, verifyCompressed } = require("falcon-1024");
+const { falcon1024 } = require("falcon-1024");
 ```
 
 ### Deterministic key generation from a seed
@@ -51,44 +47,37 @@ const { generateKey, signCompressed, verifyCompressed } = require("falcon-1024")
 If you pass a seed, key generation is deterministic:
 
 ```ts
-import { generateKey } from "falcon-1024";
+import { falcon1024 } from "falcon-1024";
 
 const seed = crypto.getRandomValues(new Uint8Array(48));
-const { publicKey, privateKey } = generateKey(seed);
+const { publicKey, privateKey } = falcon1024.generateKey(seed);
 ```
 
 The same 48-byte seed will always produce the same keypair.
 
 ## API
 
-All exports come from the top-level module:
+The signing operations are grouped under the `falcon1024` object, which
+implements the `FalconApi` interface. (A sibling `falcon512` export implementing
+the same interface will be added in the future.) Constants and error classes are
+exported from the top-level module:
 
 ```ts
 import {
+  falcon1024,
   FALCON_DET1024_PUBKEY_SIZE,
   FALCON_DET1024_PRIVKEY_SIZE,
   FALCON_DET1024_SIG_COMPRESSED_MAXSIZE,
-  generateKey,
-  signCompressed,
-  verifyCompressed,
   KeygenError,
   SigningError,
   VerificationError,
 } from "falcon-1024";
+import type { FalconApi } from "falcon-1024";
 ```
 
-### Constants
+### `falcon1024`
 
-- `FALCON_DET1024_PUBKEY_SIZE: number`\
-  Byte length of a Falcon-1024 public key.
-
-- `FALCON_DET1024_PRIVKEY_SIZE: number`\
-  Byte length of a Falcon-1024 private key.
-
-- `FALCON_DET1024_SIG_COMPRESSED_MAXSIZE: number`\
-  Maximum byte length of a compressed Falcon-1024 signature.
-
-### Functions
+An object implementing `FalconApi` with the following methods:
 
 - `generateKey(seed?: Uint8Array): { publicKey: Uint8Array; privateKey: Uint8Array }`\
   Generates a Falcon-1024 keypair.
@@ -106,6 +95,17 @@ import {
 
   - Returns `true` if the signature is valid.
   - Throws `VerificationError` if the key/signature is malformed or verification fails.
+
+### Constants
+
+- `FALCON_DET1024_PUBKEY_SIZE: number`\
+  Byte length of a Falcon-1024 public key.
+
+- `FALCON_DET1024_PRIVKEY_SIZE: number`\
+  Byte length of a Falcon-1024 private key.
+
+- `FALCON_DET1024_SIG_COMPRESSED_MAXSIZE: number`\
+  Maximum byte length of a compressed Falcon-1024 signature.
 
 ### Errors
 
