@@ -41,6 +41,7 @@
     "better-npm-audit": "^3.11.0",
     "esbuild": "^0.25.0",
     "playwright": "^1.60.0",
+    "semantic-release": "^25.0.8",
     "serve": "^14.2.6",
     "tsx": "^4.22.0",
     "typescript": "^5",
@@ -53,5 +54,45 @@
   "homepage": "https://github.com/joe-p/falcon-1024-ts#readme",
   "bugs": {
     "url": "https://github.com/joe-p/falcon-1024-ts/issues"
+  },
+  "release": {
+    "branches": [
+      {
+        "name": "main",
+        "prerelease": "beta"
+      },
+      {
+        "name": "release"
+      }
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "releaseRules": [
+            {
+              "type": "build",
+              "release": "patch"
+            },
+            {
+              "type": "chore",
+              "release": "patch"
+            },
+            {
+              "type": "refactor",
+              "release": "patch"
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/npm",
+        {
+          "pkgRoot": "dist"
+        }
+      ],
+      "@semantic-release/github"
+    ]
   }
 }
