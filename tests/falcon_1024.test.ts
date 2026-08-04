@@ -1,12 +1,12 @@
 import { describe, test, expect } from "vitest";
 import {
-  generateKey,
-  signCompressed,
-  verifyCompressed,
+  falcon1024,
   VerificationError,
   FALCON_DET1024_PUBKEY_SIZE,
   FALCON_DET1024_PRIVKEY_SIZE,
 } from "../src/index";
+
+const { generateKey, signCompressed, verifyCompressed } = falcon1024;
 
 describe("Falcon", () => {
   describe("generateKey", () => {

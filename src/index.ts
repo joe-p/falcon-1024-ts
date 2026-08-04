@@ -8,11 +8,12 @@ import createModule from "./falcon_wasm.js";
 import { makeApi } from "./falcon-core";
 
 const module = await createModule();
-const api = makeApi(module);
 
-export const generateKey = api.generateKey;
-export const signCompressed = api.signCompressed;
-export const verifyCompressed = api.verifyCompressed;
+/**
+ * Falcon-1024 signature API. Grouping the operations under a named object leaves
+ * room for a sibling `falcon512` export once Falcon-512 support is added.
+ */
+export const falcon1024 = makeApi(module);
 
 export {
   FALCON_DET1024_PUBKEY_SIZE,
