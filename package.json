@@ -19,11 +19,10 @@
     }
   },
   "files": [
-    "dist",
-    "README.md"
+    "**/*"
   ],
   "scripts": {
-    "build": "npm exec tsx scripts/build.ts && esbuild src/index.ts --bundle --outfile=dist/index.js --target=es2022 --format=esm && esbuild src/index.cjs.ts --bundle --outfile=dist/index.cjs --target=es2022 --format=cjs --platform=node --define:import.meta.url=__filename && tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync('dist/index.d.ts','dist/index.d.cts')\"",
+    "build": "npm exec tsx scripts/build.ts && esbuild src/index.ts --bundle --outfile=dist/index.js --target=es2022 --format=esm && esbuild src/index.cjs.ts --bundle --outfile=dist/index.cjs --target=es2022 --format=cjs --platform=node --define:import.meta.url=__filename && tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync('dist/index.d.ts','dist/index.d.cts')\" && tsx scripts/copy-package-json.ts",
     "test": "vitest run --exclude '**/browser_tests/**' tests",
     "test:esm": "node --test dist_tests/esm.mjs",
     "test:cjs": "node --test dist_tests/cjs.cjs",
